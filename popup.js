@@ -56,6 +56,8 @@ const createBookmarkElement = (bookmark) => {
     newElement.classList.add("bookmark");
     newElement.appendChild(title);
     newElement.appendChild(controls);
+    newElement.setAttribute("url",bookmark.url)
+    newElement.setAttribute("uid",bookmark.id);
 
     // Append to the bookmarks section
     bookmarkSection.appendChild(newElement);
@@ -79,13 +81,31 @@ const setControlButton = (src, handler, parentDiv) => {
 /**
  * Handle delete button click
  */
-const handleDeleteClick = () => {
-    console.log("Delete button clicked");
+const handleDeleteClick = (event) => {
+    const item = event.target.parentNode.parentNode; // The parent div of the bookmark
+    const id = item.getAttribute("uid"); // Correctly fetch the UID of the bookmark
+    removefromStorage(id); // Remove from storage
+    item.remove(); // Remove from the DOM
 };
+
+function  removefromStorage(_id){
+    chrome.storage.sync.get([AZ_problem_key],(data)=>{
+            const current = data[AZ_problem_key] || [];
+            const update = current.filter((e)=>e.id!==_id);
+            chrome.storage.sync.set({AZ_problem_key : update}, ()=>{
+                console.log("Deleted from Storage also!")
+            })
+    })
+}
 
 /**
  * Handle play button click
  */
-const handlePlayClick = () => {
-    console.log("Play button clicked");
+const handlePlayClick = (event) => {
+    const problemURL = event.target.parentNode.parentNode.getAttribute("url");
+    if (problemURL) {
+        window.open(problemURL, "_blank");
+    } else {
+        console.error("URL not found for this bookmark.");
+    }
 };
